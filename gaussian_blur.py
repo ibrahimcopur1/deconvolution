@@ -58,7 +58,6 @@ def convolve_fft(image: np.ndarray, kernel:np.ndarray) -> np.ndarray:
     return unpadded_image
 
 
-blurry_image = convolve_fft(image, blur_kernel)
 
 
 
