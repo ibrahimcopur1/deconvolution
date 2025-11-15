@@ -14,7 +14,6 @@ end_index = start_index + square_size
 """ Drawing The Square """
 original_image[start_index:end_index, start_index:end_index] = 1.0
 
-print(start_index + end_index)
 
 """
 plt.figure()
@@ -26,17 +25,28 @@ plt.show()
 #Creating the Blur Kernel 
 
 kernel_size = 15
-sigma = 4
 
+""" Gaussian Blur Kernel """
+sigma = 4
+#creating the number line for the gaussian kernel
 kernel_center = kernel_size // 2
 x = np.linspace(-kernel_center, kernel_center, kernel_size)
 y = np.linspace(-kernel_center, kernel_center, kernel_size)
 
-xx, yy = np.meshgrid(x, y)
+xx, yy = np.meshgrid(x, y) #for radially symmetric kernels
 
-kernel = np.exp(-(xx**2 + yy**2) / (2 * sigma**2))
+##Gaussian Function
+gaussian_kernel = np.exp(-(xx**2 + yy**2) / (2 * sigma**2))
+gaussian_kernel = gaussian_kernel / np.sum(gaussian_kernel)
 
-kernel = kernel / np.sum(kernel)
+""" Creating Motion Blur Kernel """
+motion_kernel = np.zeros((kernel_size, kernel_size))
+center_row = kernel_size // 2
+motion_kernel[center_row, : ] = 1.0
+motion_kernel = motion_kernel / np.sum(motion_kernel) #normalization
+
+
+kernel = motion_kernel #set the kernel
 
 """
 plt.figure()
@@ -76,7 +86,7 @@ plt.show()
 
 """     Brute Force Deconvolution (FAIL)      """
 #simulate a noise on the images
-noise_strength = 0.01
+noise_strength = 0.1
 noise = np.random.normal(0, noise_strength, size=image_size)
 noisy_blurry_image = blurry_image + noise
 
@@ -118,7 +128,7 @@ H_mag_sq = np.abs(H)**2
 #setting the tuning knob K (noise to signal ratio)
 #guesstimation
 
-K = 5
+K = 1
 
 #wiener function W
 W = H_conj / (H_mag_sq + K)
