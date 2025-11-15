@@ -15,6 +15,13 @@ end_index = start_index + square_size
 original_image[start_index:end_index, start_index:end_index] = 1.0
 
 
+#constants used throughout the demo
+sigma = 10 #gaussian blur
+noise_strength = 0.01 #added noise
+K = 10 #for wiener filter
+gamma = 100 #for CLS 
+
+
 """
 plt.figure()
 plt.imshow(original_image, cmap="gray")
@@ -27,7 +34,7 @@ plt.show()
 kernel_size = 15
 
 """ Gaussian Blur Kernel """
-sigma = 4
+
 #creating the number line for the gaussian kernel
 kernel_center = kernel_size // 2
 x = np.linspace(-kernel_center, kernel_center, kernel_size)
@@ -86,7 +93,7 @@ plt.show()
 
 """     Brute Force Deconvolution (FAIL)      """
 #simulate a noise on the images
-noise_strength = 0.1
+
 noise = np.random.normal(0, noise_strength, size=image_size)
 noisy_blurry_image = blurry_image + noise
 
@@ -125,10 +132,6 @@ plt.show()
 H_conj = np.conjugate(H)
 H_mag_sq = np.abs(H)**2
 
-#setting the tuning knob K (noise to signal ratio)
-#guesstimation
-
-K = 1
 
 #wiener function W
 W = H_conj / (H_mag_sq + K)
@@ -139,6 +142,34 @@ F_deconv_wiener = F_blur_noisy * W
 #invert fft to get the image 
 deconv_image_wiener = np.real(np.fft.ifft2(F_deconv_wiener))
 
+
+""" Constrained Least Squares Demo """
+#a 3x3 laplacian kernel
+p = np.array([
+    [ 0, -1,  0],
+    [-1,  4, -1],
+    [ 0, -1,  0]
+])
+#padding the laplacian kernel
+padded_laplacian = np.zeros(image_size)
+start_lap = (image_size[0] - 3) // 2
+end_lap = start_lap + 3
+padded_laplacian[start_lap:end_lap, start_lap:end_lap] = p
+rolled_padded_laplacian = np.fft.ifftshift(padded_laplacian)#roll to the origin
+P = np.fft.fft2(rolled_padded_laplacian)
+
+#building the cls function
+
+#we have H_conj and H_mag_sq from weiner 
+P_mag_sq = np.abs(P)**2
+
+CLS = H_conj / (H_mag_sq + gamma * P_mag_sq)
+
+##Applying the filter
+F_deconv_cls = F_blur_noisy * CLS
+deconv_image_cls = np.real(np.fft.ifft2(F_deconv_cls))
+
+
 """
 plt.figure()
 plt.imshow(deconv_image_wiener, cmap='gray', vmin=0, vmax=1) # vmin/vmax cleans up display
@@ -146,7 +177,7 @@ plt.title(f"Wiener Deconvolution (K={K})")
 plt.show()
 """
 
-fig, axes = plt.subplots(2, 3, figsize=(15, 15))
+fig, axes = plt.subplots(3, 3, figsize=(15, 15))
 
 ax = axes[0 ,0]
 ax.imshow(original_image, cmap="gray")
@@ -171,6 +202,10 @@ ax.set_title("Brute Force Deconvolution with Noise")
 ax = axes[1, 2]
 ax.imshow(deconv_image_wiener, cmap="gray", vmin = 0, vmax = 1)
 ax.set_title(f"Deconvolution with Wiener filter (K = {K})")
+
+ax = axes[2, 0]
+ax.imshow(deconv_image_cls, cmap="gray", vmin = 0, vmax = 1)
+ax.set_title(f"Deconvolution wit CLS (gamma = {gamma})")
 
 plt.subplots_adjust(hspace=0.4)
 plt.show()
