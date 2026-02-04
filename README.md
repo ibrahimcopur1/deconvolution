@@ -1,8 +1,10 @@
-# deconvolution
-Deconvolution and Image Reconstruction / Signals and Systems / Image Processing 
+# Deconvolution on Simulated JWST Data
+### A physics-based forward modeling and restoration pipeline for diffraction-limited astronomical data.
 
-#File Structure 
 
-* 'gaussian_blur.py': basic demo of creating a gaussian blur kernel and convolving with an image to apply the blur
-* 'deconvolution_demo.py': in depth demo of brute force deconvolution, deconvolution on noisy images, implementation of Noise Aware Wiener filter.
-Also demonstrates the trade-off between smooth edges vs grainy noise after deconvolution.
+## Overview
+This project implements a computational optics engine to mathematically reverse the inherent convolution that happens during the capturing process of an image. Instead of simple image 
+sharpening, we built a Forward Model to simulate the quantum physics of photon arrival and the wave optics of hexagonal apertures. We then validated various deconvolution algorithms against 
+this ground truth, proving that Bayesian methods (Richardson-Lucy) outperform linear filters (Wiener) in high-contrast astronomical regimes.
+
+
